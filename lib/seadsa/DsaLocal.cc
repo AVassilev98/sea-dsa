@@ -466,7 +466,7 @@ class IntraBlockBuilder : public InstVisitor<IntraBlockBuilder>,
   void visitSeaDsaFnCall(CallSite &CS);
 
   void visitAllocWrapperCall(CallSite &CS);
-  void visitAllocationFnCall(CallSite &CS, bool isHeap = true);
+  void visitAllocationFnCall(CallSite &CS);
 
   SeadsaFn getSeaDsaFn(const Function *fn) {
     if (!fn) return SeadsaFn::UNKNOWN;
@@ -1199,8 +1199,7 @@ void IntraBlockBuilder::visitSeaDsaFnCall(CallSite &CS) {
   }
 
   case SeadsaFn::NEW: {
-    //generate an allocation call with no attributes set
-    visitAllocationFnCall(CS, false);
+    visitAllocationFnCall(CS);
     return;
   }
 
@@ -1305,7 +1304,7 @@ void IntraBlockBuilder::visitAllocWrapperCall(CallSite &CS) {
   visitAllocationFnCall(CS);
 }
 
-void IntraBlockBuilder::visitAllocationFnCall(CallSite &CS, bool isHeap) {
+void IntraBlockBuilder::visitAllocationFnCall(CallSite &CS) {
   using namespace seadsa;
   assert(CS.getInstruction());
   Node &n = m_graph.mkNode();
@@ -1314,7 +1313,7 @@ void IntraBlockBuilder::visitAllocationFnCall(CallSite &CS, bool isHeap) {
   assert(site);
   n.addAllocSite(*site);
   // -- mark node as a heap node
-  if(isHeap)  n.setHeap();
+  n.setHeap();
 
   m_graph.mkCell(*CS.getInstruction(), Cell(n, 0));
 }
