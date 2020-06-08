@@ -2,6 +2,7 @@
 ; RUN: %cmp-graphs %tests/test-ext-3.c.main.mem.dot %T/test-ext-3.ll/main.mem.dot | OutputCheck %s -d --comment=";"
 ; CHECK: ^OK$
 
+
 ; ModuleID = 'test-ext-3.c'
 source_filename = "test-ext-3.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
@@ -18,7 +19,7 @@ define dso_local i32 @main() #0 {
   %7 = alloca i8*, align 8
   %8 = alloca i8*, align 8
   store i32 0, i32* %1, align 4
-  %9 = call i8* (...) @sea_dsa_new()
+  %9 = call noalias i8* (...) @sea_dsa_new()
   store i8* %9, i8** %2, align 8
   %10 = load i8*, i8** %2, align 8
   call void @sea_dsa_set_ptrtoint(i8* %10)
@@ -32,34 +33,34 @@ define dso_local i32 @main() #0 {
   call void @sea_dsa_set_heap(i8* %14)
   %15 = load i8*, i8** %2, align 8
   call void @sea_dsa_set_alloca(i8* %15)
-  %16 = call i8* (...) @sea_dsa_new()
+  %16 = call noalias i8* (...) @sea_dsa_new()
   store i8* %16, i8** %3, align 8
   %17 = load i8*, i8** %3, align 8
   call void @sea_dsa_set_ptrtoint(i8* %17)
-  %18 = call i8* (...) @sea_dsa_new()
+  %18 = call noalias i8* (...) @sea_dsa_new()
   store i8* %18, i8** %4, align 8
   %19 = load i8*, i8** %4, align 8
   call void @sea_dsa_set_inttoptr(i8* %19)
-  %20 = call i8* (...) @sea_dsa_new()
+  %20 = call noalias i8* (...) @sea_dsa_new()
   store i8* %20, i8** %5, align 8
   %21 = load i8*, i8** %5, align 8
   call void @sea_dsa_set_modified(i8* %21)
-  %22 = call i8* (...) @sea_dsa_new()
+  %22 = call noalias i8* (...) @sea_dsa_new()
   store i8* %22, i8** %6, align 8
   %23 = load i8*, i8** %6, align 8
   call void @sea_dsa_set_read(i8* %23)
-  %24 = call i8* (...) @sea_dsa_new()
+  %24 = call noalias i8* (...) @sea_dsa_new()
   store i8* %24, i8** %7, align 8
   %25 = load i8*, i8** %7, align 8
   call void @sea_dsa_set_heap(i8* %25)
-  %26 = call i8* (...) @sea_dsa_new()
+  %26 = call noalias i8* (...) @sea_dsa_new()
   store i8* %26, i8** %8, align 8
   %27 = load i8*, i8** %8, align 8
   call void @sea_dsa_set_alloca(i8* %27)
   ret i32 0
 }
 
-declare dso_local i8* @sea_dsa_new(...) #1
+declare dso_local noalias i8* @sea_dsa_new(...) #1
 
 declare dso_local void @sea_dsa_set_ptrtoint(i8*) #1
 
