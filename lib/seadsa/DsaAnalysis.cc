@@ -11,6 +11,7 @@
 #include "seadsa/Global.hh"
 #include "seadsa/Info.hh"
 #include "seadsa/InitializePasses.hh"
+#include "seadsa/SpecGraphInfo.hh"
 #include "seadsa/Stats.hh"
 #include "seadsa/support/RemovePtrToInt.hh"
 
@@ -49,6 +50,7 @@ void DsaAnalysis::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.addRequired<CallGraphWrapperPass>();
   AU.addRequired<TargetLibraryInfoWrapperPass>();
   AU.addRequired<AllocWrapInfo>();
+  AU.addRequired<SpecGraphInfo>();
   AU.setPreservesAll();
 }
 
@@ -71,6 +73,7 @@ bool DsaAnalysis::runOnModule(Module &M) {
   m_dl = &M.getDataLayout();
   m_tliWrapper = &getAnalysis<TargetLibraryInfoWrapperPass>();
   m_allocInfo = &getAnalysis<AllocWrapInfo>();
+  m_specGraphInfo = &getAnalysis<SpecGraphInfo>();
   auto &cg = getAnalysis<CallGraphWrapperPass>().getCallGraph();
 
   switch (DsaGlobalAnalysis) {
@@ -84,16 +87,17 @@ bool DsaAnalysis::runOnModule(Module &M) {
         true /* use flat*/));
     break;
   case GlobalAnalysisKind::BUTD_CONTEXT_SENSITIVE:
-    m_ga.reset(new BottomUpTopDownGlobalAnalysis(
-        *m_dl, *m_tliWrapper, *m_allocInfo, cg, m_setFactory));
+    m_ga.reset(new BottomUpTopDownGlobalAnalysis(*m_dl, *m_tliWrapper,
+                                                 *m_allocInfo, *m_specGraphInfo,
+                                                 cg, m_setFactory));
     break;
   case GlobalAnalysisKind::BU:
     m_ga.reset(new BottomUpGlobalAnalysis(*m_dl, *m_tliWrapper, *m_allocInfo,
-                                          cg, m_setFactory));
+                                          *m_specGraphInfo, cg, m_setFactory));
     break;
   default: /* CONTEXT_SENSITIVE */
     m_ga.reset(new ContextSensitiveGlobalAnalysis(
-        *m_dl, *m_tliWrapper, *m_allocInfo, cg, m_setFactory,
+        *m_dl, *m_tliWrapper, *m_allocInfo, *m_specGraphInfo, cg, m_setFactory,
         true /* always store summary graphs*/));
   }
 
@@ -118,5 +122,6 @@ INITIALIZE_PASS_DEPENDENCY(RemovePtrToInt)
 INITIALIZE_PASS_DEPENDENCY(AllocWrapInfo)
 INITIALIZE_PASS_DEPENDENCY(CallGraphWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(TargetLibraryInfoWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(SpecGraphInfo)
 INITIALIZE_PASS_END(DsaAnalysis, "dsa-wrapper",
                     "Entry point for all SeaDsa clients", false, false)
